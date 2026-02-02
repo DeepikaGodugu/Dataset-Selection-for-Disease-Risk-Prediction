@@ -9,61 +9,91 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# ==========================================
-# 1. ADVANCED UI CONFIGURATION
-# ==========================================
+# 1.ADVANCED UI CONFIGURATION
 st.set_page_config(
     page_title="HFR-MADM Clinical Portal",
     page_icon="🩺",
     layout="wide"
 )
 
-# Custom CSS for "Real Website" Look
 st.markdown("""
 <style>
-/* Main background */
-.stApp {
-    background-color: #f8f9fa;
-}
-/* Custom Header Card */
+/* 1. Main Background */
+.stApp { background-color: #f8f9fa; }
+
+/* 2. Custom Header */
 .main-header {
-    background: linear-gradient(90deg, #004e92 0%, #000428 100%);
+    background: linear-gradient(90deg, #002b5b 0%, #004e92 100%);
     padding: 2rem;
     border-radius: 15px;
     color: white;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
-/* Metric Card Styling */
+
+/* 3. FORCED SIDEBAR THEME */
+[data-testid="stSidebar"] {
+    background-image: linear-gradient(180deg, #002b5b 0%, #004e92 100%) !important;
+    background-color: #002b5b !important;
+}
+
+/* Force Sidebar labels to be white */
+[data-testid="stSidebar"] label, .sidebar-title {
+    color: white !important;
+    font-weight: 700 !important;
+}
+
+/* FIX: Force Dataset Selection text to be BLACK */
+div[data-baseweb="select"] > div {
+    color: black !important;
+}
+input[data-testid="stWidgetInput-selectbox"] {
+    color: black !important;
+    -webkit-text-fill-color: black !important;
+}
+
+/* Sidebar Glass Cards - High Contrast */
+.sidebar-card {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px);
+    padding: 16px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+    color: white !important; 
+}
+
+/* Force specific tags like <b> to be white */
+.sidebar-card b, .sidebar-card span, .sidebar-card div {
+    color: white !important;
+}
+
+/* Keep the dropdown text black so it's readable in the white box */
+div[data-baseweb="select"] > div {
+    color: black !important;
+}
+
+/* Gold Rank Badge */
+.rank-badge {
+    background: linear-gradient(90deg, #ffd700 0%, #ffae00 100%) !important;
+    color: #002b5b !important;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* 4. Tabs & Metrics */
 div[data-testid="stMetric"] {
     background-color: white;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border: 1px solid #edf2f7;
-}
-/* Sidebar styling */
-section[data-testid="stSidebar"] {
-    background-color: #ffffff;
-    border-right: 1px solid #e2e8f0;
-}
-/* Tabs styling */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-}
-.stTabs [data-baseweb="tab"] {
-    height: 45px;
-    background-color: white;
-    border-radius: 8px 8px 0 0;
-    padding: 10px 25px;
-    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
 # 2. LOGIC (Logistic Regression Focus)
-# ==========================================
 def load_datasets(folder="data"):
     datasets = {}
     if not os.path.exists(folder):
@@ -114,29 +144,42 @@ def train_model(X, y):
         scaler,
         X.columns
     )
-
-# ==========================================
-# 3. SIDEBAR NAVIGATION
-# ==========================================
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3774/3774299.png", width=100)
-st.sidebar.markdown("### **Navigation Menu**")
-
+# Load datasets
 all_data = load_datasets("data")
 if not all_data:
-    st.sidebar.error("Data folder empty!")
+    st.error("❌ Data folder is empty or missing CSV files.")
     st.stop()
 
+# Rank datasets
 rankings = hfr_madm_logic(all_data)
 rankings = rankings.reset_index(drop=True)
 rankings.insert(0, "Rank", rankings.index + 1)
-dataset_choice = st.sidebar.selectbox("📂 Database Access", list(all_data.keys()))
-st.sidebar.markdown("---")
-st.sidebar.write("🏷️ **Top Ranked:**")
-st.sidebar.code(rankings.iloc[0]["Dataset"])
 
-# ==========================================
+# 3. SIDEBAR NAVIGATION
+st.sidebar.markdown(
+    """
+    <div style="text-align:center;">
+        <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" width="90"/>
+        <div class="sidebar-title">Navigation Menu</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown('<div class="sidebar-card">📂 <b>Database Access</b>', unsafe_allow_html=True)
+dataset_choice = st.sidebar.selectbox("", list(all_data.keys()))
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown('<div class="sidebar-card">🏷️ <b>Top Ranked Dataset</b>', unsafe_allow_html=True)
+st.sidebar.markdown(
+    f'<div class="rank-badge">{rankings.iloc[0]["Dataset"]}</div>',
+    unsafe_allow_html=True
+)
+st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
 # 4. MAIN INTERFACE
-# ==========================================
 st.markdown(f"""
 <div class="main-header">
     <h1>🩺Predictive Healthcare Decision System</h1>
@@ -152,7 +195,7 @@ tab1, tab2, tab3 = st.tabs(
 )
 
 with tab1:
-    st.markdown("### **HFR-MADM Quality Ranking**")
+    st.markdown("### *HFR-MADM Quality Ranking*")
     st.dataframe(
         rankings.style
         .background_gradient(cmap="Blues", subset=["Score"])
@@ -164,7 +207,7 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.write("**Dataset Quality Scores**")
+        st.write("*Dataset Quality Scores*")
         fig1, ax1 = plt.subplots(figsize=(6, 4))
         sns.barplot(
             data=rankings,
@@ -176,7 +219,7 @@ with tab1:
         st.pyplot(fig1)
 
     with col2:
-        st.write("**Dataset Size vs Feature Count**")
+        st.write("*Dataset Size vs Feature Count*")
         fig2, ax2 = plt.subplots(figsize=(6, 4))
 
         sns.barplot(
@@ -191,7 +234,6 @@ with tab1:
         ax2.set_ylabel("Dataset")
 
         st.pyplot(fig2)
-
 with tab2:
     st.markdown("### **Metrics**")
     m1, m2, m3 = st.columns(3)
@@ -219,47 +261,78 @@ with tab3:
     st.markdown("### **Patient Risk Predictor**")
     st.info("Input clinical parameters to generate a risk probability score.")
 
-    # ---- Add Pie Chart for Overall Risk ----
-    risk_counts = y_sel.value_counts()
-    labels = ['Low Risk', 'High Risk']
-    sizes = [risk_counts.get(0, 0), risk_counts.get(1, 0)]
-    colors = ['#4A90E2', '#E53935']  # Blue for low, red for high
+    # We create two columns: Left for the Form, Right for the Overall Context
+    form_col, info_col = st.columns([2, 1])
 
-    fig_pie, ax_pie = plt.subplots(figsize=(4,3))
-    ax_pie.pie(
-        sizes,
-        labels=labels,
-        autopct='%1.1f%%',
-        startangle=90,
-        colors=colors,
-        radius= 1.0,
-        textprops={'fontsize': 7}, # Smaller font for smaller chart
-        wedgeprops={'edgecolor': 'white', 'linewidth': 1}
-    )
-    ax_pie.axis('equal')
-    
-    st.pyplot(fig_pie, bbox_inches='tight')
-    plt.close(fig_pie)
-    # ----------------------------------------
+    with info_col:
+        st.write("**Overall Dataset Risk Context**")
+        # ---- Small Pie Chart for Overall Risk ----
+        risk_counts = y_sel.value_counts()
+        labels = ['Low Risk', 'High Risk']
+        sizes = [risk_counts.get(0, 0), risk_counts.get(1, 0)]
+        colors = ['#4A90E2', '#E53935'] 
 
-    with st.form("clinical_form"):
-        cols = st.columns(3)
-        inputs = []
-        for i, col in enumerate(feature_names):
-            with cols[i % 3]:
-                inputs.append(
-                    st.number_input(col, float(raw_df[col].median()))
-                )
+        fig_pie, ax_pie = plt.subplots(figsize=(3, 2))
+        ax_pie.pie(
+            sizes,
+            labels=labels,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=colors,
+            radius=1.0,
+            textprops={'fontsize': 7},
+            wedgeprops={'edgecolor': 'white', 'linewidth': 1}
+        )
+        ax_pie.axis('equal')
+        st.pyplot(fig_pie, bbox_inches='tight')
+        plt.close(fig_pie)
+        st.caption("This chart shows the distribution of the entire dataset.")
 
-        if st.form_submit_button("Generate Prediction", use_container_width=True):
-            input_scaled = scaler.transform(np.array(inputs).reshape(1, -1))
-            res = model.predict(input_scaled)[0]
-            prob = model.predict_proba(input_scaled).max()
+    with form_col:
+        with st.form("clinical_form"):
+            cols = st.columns(2) # Two columns for form fields to save space
+            inputs = []
+            for i, col in enumerate(feature_names):
+                with cols[i % 2]:
+                    # Added min_value=0.0 so any value can be entered
+                    inputs.append(
+                        st.number_input(col, value=float(raw_df[col].median()), min_value=0.0)
+                    )
 
-            if res == 1:
-                st.error(f"### ⚠️ DIAGNOSIS: HIGH RISK\nConfidence: {prob:.2%}")
-            else:
-                st.success(f"### ✅ DIAGNOSIS: LOW RISK\nConfidence: {prob:.2%}")
+            submit = st.form_submit_button("Generate Individual Prediction", use_container_width=True)
+
+    if submit:
+        st.divider()
+        input_scaled = scaler.transform(np.array(inputs).reshape(1, -1))
+        res = model.predict(input_scaled)[0]
+        prob = model.predict_proba(input_scaled).max()
+
+        if res == 1:
+            st.error(f"### ⚠️ INDIVIDUAL DIAGNOSIS: HIGH RISK\nPersonalized Confidence: {prob:.2%}")
+            st.warning("**Recommendation:** Clinical intervention and further diagnostic testing recommended.")
+        else:
+            st.success(f"### ✅ INDIVIDUAL DIAGNOSIS: LOW RISK\nPersonalized Confidence: {prob:.2%}")
+            st.toast("Analysis Complete: Low Risk Detected", icon='✅')
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
