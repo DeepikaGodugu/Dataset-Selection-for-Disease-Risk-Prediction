@@ -76,6 +76,5 @@ A weighted score is calculated and datasets are ranked.
 ## 🌐 Live Demo
 Interactive web application deployed using Streamlit Cloud.
 
-👉 https://healthcare-ml-project-gvskcbxdfc37z84spyouwd.streamlit.app/
-
+👉 https://dataset-selection-for-disease-risk-prediction-jfpmes7xjgv5c2te.streamlit.app/
 
