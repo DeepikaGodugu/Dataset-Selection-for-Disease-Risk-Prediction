@@ -73,9 +73,5 @@ A weighted score is calculated and datasets are ranked.
 - **Matplotlib**
 - **Seaborn**
 
-## 🌐 Live Demo
-Interactive web application deployed using Streamlit Cloud.
-
-👉 https://healthcare-ml-project-gvskcbxdfc37z84spyouwd.streamlit.app/
 
 
